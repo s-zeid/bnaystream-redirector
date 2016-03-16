@@ -4,10 +4,11 @@ BnayStream Redirector
 Stream redirector based on youtube-dl.
 
 Copyright (c) 2016 Scott Zeid.
-Released under [the X11 License](https://tldrlegal.com/l/x11).
-<https://stream.bnay.me/>
+Released under [the X11 License](https://tldrlegal.com/l/x11).  
+<https://stream.bnay.me/>  
 <https://code.s.zeid.me/bnaystream-redirector>
 
+- - - -
 
 This program will redirect you to the direct stream URL for a given live stream
 in a given [youtube-dl](https://rg3.github.io/youtube-dl/) format.
