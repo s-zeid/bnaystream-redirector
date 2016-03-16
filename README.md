@@ -20,7 +20,7 @@ URL using one of the following syntaxes:
 * `https://stream.bnay.me/?url={url}&format={format}`
 
 The direct stream URL is returned both in the response's Location header and
-the response's body.  Not found, gone, and bad request errors use the proper
+as the response's body.  Not found, gone, and bad request errors use the proper
 HTTP status codes.
 
 
