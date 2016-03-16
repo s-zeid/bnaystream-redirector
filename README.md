@@ -27,10 +27,16 @@ errors use the proper HTTP status codes.
 Dependencies
 ------------
 
+### Runtime
+
 * youtube-dl
 * Python 3
 * PHP 5.6+
+
+### Setup
+
 * GNU make
+* NPM
 
 
 Installation
