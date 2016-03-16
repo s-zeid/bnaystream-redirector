@@ -1,0 +1,2 @@
+HOST := example.com
+DIR  := ~/srv/www/example.com/_/stream

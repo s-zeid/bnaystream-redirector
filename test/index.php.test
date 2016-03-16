@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Copyright (c) 2016 Scott Zeid.
+# Released under the X11 License:  <https://tldrlegal.com/l/x11>
+
+if [ $# -ne 1 ]; then
+ echo "Usage: $0 <http-port>" >&2
+ exit 2
+fi
+
+http_port=$1
+
+"$(dirname -- "$0")/../ytdl-urld" 127.0.0.1:26298 &
+ytdl_urld_pid=$!
+
+cd "$(dirname -- "$0")/.."
+php -S "127.0.0.1:$http_port" "index.php" &
+php_pid=$!
+
+end() {
+ kill -9 "$php_pid"
+ kill -9 "$ytdl_urld_pid"
+ exit
+}
+trap end INT TERM
+
+while true; do
+ sleep 1
+done

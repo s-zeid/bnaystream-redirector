@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Copyright (c) 2016 Scott Zeid.
+# Released under the X11 License:  <https://tldrlegal.com/l/x11>
+
+if [ $# -ne 2 ]; then
+ echo "Usage: $0 <format> <url>" >&2
+ exit 2
+fi
+
+format=$1
+url=$2
+
+if (printf '%s' "$url" | grep -q -e '^\(https\?://\)\?\([^.]\+\?\.\)\?twitch\.tv') && \
+   [ x"$format" != x"best" ] && [ x"$format" != x"worst" ]; then
+ format_len=$(printf '%s' "$format" | wc -c)
+ format_upper=$(printf '%s' "$format" | tr 'a-z' 'A-Z')
+ format_lower=$(printf '%s' "$format" | tr 'A-Z' 'a-z')
+ format=$(echo x | awk '{
+  print substr(upper, 1, 1) substr(lower, 2, len - 1)
+ }' upper="$format_upper" lower="$format_lower" len="$format_len")
+fi
+
+"$(dirname -- "$0")/../$(basename -- "$0" .test)" 127.0.0.1:42069 &
+pid=$!
+sleep 2
+printf '%s\n%s' "$format" "$url" | nc 127.0.0.1 42069
+echo
+kill -9 "$pid"

@@ -1,0 +1,78 @@
+html, body, input {
+ font-family: "Roboto", "Droid Sans", "Arial", "Helvetica", sans-serif;
+}
+
+.app-root > .app-heading .mdl-layout__header-row {
+ padding-left: 40px;
+}
+
+.app-title a {
+ color: #fff;
+ text-decoration: none;
+}
+
+.app-toolbar .app-buttons {
+ margin-right: -24px;
+}
+
+@media (max-width: 839px) {
+ .app-buttons a span {
+  display: none;
+ }
+ .app-toolbar .app-buttons a {
+  padding: 0 8px;
+ }
+}
+
+@media (max-width: 1024px) {
+ .app-root > .app-heading .mdl-layout__header-row {
+  padding-left: 24px;
+ }
+ .app-toolbar .app-buttons {
+  margin-right: -8px;
+ }
+}
+
+.app-main {
+ margin: 0 8px;
+}
+
+.app-main > .mdl-cell {
+ margin-left: auto; margin-right: auto;
+}
+
+.app-main form > .mdl-textfield + .mdl-textfield {
+ margin-top: -20px;
+}
+
+.app-main form .mdl-switch {
+ padding-left: 0;
+}
+
+.app-main form .mdl-switch .mdl-switch__label {
+ left: 0;
+}
+
+.app-main form .mdl-switch .mdl-switch__track,
+.app-main form .mdl-switch .mdl-switch__thumb,
+.app-main form .mdl-switch .mdl-switch__ripple-container {
+ right: 0;
+ left: auto;
+}
+
+.app-main form .mdl-switch .mdl-switch__thumb {
+ margin-right: 16px;
+ transition-property: left, margin-right;
+}
+
+.app-main form .mdl-switch.is-checked .mdl-switch__thumb {
+ margin-right: 0;
+}
+
+.app-main .mdl-textfield {
+ width: 100%;
+}
+
+.app-templates {
+ display: none;
+}

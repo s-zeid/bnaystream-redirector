@@ -1,0 +1,14 @@
+{
+  "name": "bnaystream-redirector",
+  "version": "0.1.0",
+  "description": "Stream redirector based on youtube-dl",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Scott Zeid <s@zeid.me>",
+  "license": "X11",
+  "repository": "gitlab:scottywz/bnaystream-redirector",
+  "dependencies": {
+    "material-design-lite": "^1.1.2"
+  }
+}

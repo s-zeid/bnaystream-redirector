@@ -1,0 +1,89 @@
+<!DOCTYPE html><!-- vim: set fdm=marker: -->
+
+<html>
+ <head>
+  <meta charset="utf-8" />
+  <title>BnayStream Redirector</title>
+  <meta name="viewport" content="width=device-width; minimum-scale=1.0; initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="BnayStream Redirector" />
+  <meta name="theme-color" content="#3F51B5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="BnayStream" />
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto" />
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" type="text/css" href="node_modules/material-design-lite/dist/material.indigo-deep_purple.min.css" />
+  <link rel="stylesheet" type="text/css" href="index.css" />
+  <script type="text/javascript" src="node_modules/material-design-lite/dist/material.min.js"></script>
+ </head>
+ <body>
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header mdl-base mdl-color--grey-100 mdl-color-text--grey-700 app-root">
+   <header class="mdl-layout__header is-casting-shadow app-heading">
+    <div class="mdl-layout__header-row app-toolbar">
+     <div class="mdl-layout-title app-title">
+      <a href=".">BnayStream Redirector</a>
+     </div>
+     <div class="mdl-layout-spacer"></div>
+     <nav class="mdl-navigation app-buttons">
+      <a class="mdl-navigation__link mdl-navigation__link--icon mdl-js-ripple-effect
+                app-go" href="#" title="Go" id="go">
+       <button class="mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">play_arrow</i>
+       </button>
+       <span>Go</span>
+      </a>
+     </nav>
+    </div>
+   </header>
+   <div class="mdl-layout__content app-scrollable">
+    <div class="app-templates">
+    </div>
+    <main class="mdl-grid app-main">
+     <form id="form" action="." method="GET"
+           class="mdl-cell mdl-cell--9-col mdl-cell--4-col-phone app-go-form">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label
+                  app-field-string" data-name="url">
+       <input class="mdl-textfield__input" type="text" id="url" name="url"
+              autocorrect="off" required />
+       <label class="mdl-textfield__label app-field-caption" for="url">
+	URL
+       </label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label
+                  app-field-string" data-name="format">
+       <input class="mdl-textfield__input" type="text" id="format" name="format" />
+       <label class="mdl-textfield__label app-field-caption" for="format">
+	Format
+       </label>
+      </div>
+     </form>
+     <article class="mdl-cell mdl-cell--9-col mdl-cell--4-col-phone app-info">
+      <p>
+       This program will redirect you to the direct stream URL for a given live stream in
+       a given <a href="https://rg3.github.io/youtube-dl/"><code>youtube-dl</code></a>
+       format.
+      </p>
+      <p>
+       You can also specify the stream URL and format directly in the request
+       URL using one of the following syntaxes:
+      </p>
+      <ul>
+       <li><code>https://stream.bnay.me/[{format}/]{url}</code></li>
+       <li><code>https://stream.bnay.me/?url={url}&amp;format={format}</code></li>
+      </ul>
+      <p>
+       <a href="https://code.s.zeid.me/bnaystream-redirector">Source code</a>
+       (released under the <a href="https://tldrlegal.com/l/x11">X11 License</a>)
+      </p>
+     </article>
+    </main>
+   </div>
+  </div>
+  <script type="text/javascript">
+   document.getElementById("go").addEventListener("click", function() {
+    document.getElementById("form").submit();
+   }, false);
+  </script>  
+ </body>
+</html>

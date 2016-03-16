@@ -1,0 +1,254 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2013-2016 Scott Zeid.
+# Released under the X11 License:  <https://tldrlegal.com/l/x11>
+
+import argparse
+import os
+import socket
+import socketserver
+import sys
+
+import youtube_dl
+
+
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 26298
+
+
+def main(argv):
+ p = argparse.ArgumentParser(
+  description="Serves stream URLs via youtube-dl.",
+  epilog="""
+Requests should consist of the requested format, a Unix newline, and the
+requested input URL.  There should be no extraneous newlines or other
+whitespace.  The result will be a URL.
+
+If there was an error processing the request, the URL will start with
+`error://` and be one of the following:
+
+ * error://not-found
+ * error://gone
+ * error://bad-request
+ * error://youtube-dl
+ * error://python
+ * error://other
+""".strip()
+ )
+ p.add_argument("--hep", dest="_hep_easter_egg", action="store_true",
+                help=argparse.SUPPRESS)
+ p.add_argument("hostport", nargs="?", default="",
+                help="the host and port number to connect or bind to"
+                     " (defaults to %s:%d)" % (DEFAULT_HOST, DEFAULT_PORT))
+ 
+ # Make it say "[host][:port]" for hostport in the help and usage text
+ # Trying to do it with metavar causes an AssertionError
+ def fixup(s):
+  s = s.replace("[hostport]", "hostport")
+  s = s.replace("hostport     ", "hostport")
+  s = s.replace("hostport", "[host][:port]")
+  return s
+ __format_help = p.format_help
+ p.format_help = lambda: fixup(__format_help())
+ __format_usage = p.format_usage
+ p.format_usage = lambda: fixup(__format_usage())
+ 
+ try:
+  args = p.parse_args(argv[1:])
+ except SystemExit as exc:
+  return exc.code
+ 
+ host = port = root = None
+ hostport = args.hostport
+ if ":" not in hostport:
+  hostport += ":"
+ host, port = hostport.split(":")
+ 
+ if args._hep_easter_egg:
+  print("Hep!  Hep!  I'm covered in sawlder! ... Eh?  Nobody comes.")
+  print("--Red Green, https://www.youtube.com/watch?v=qVeQWtVzkAQ#t=6m27s")
+  return 0
+ 
+ daemon(host=host, port=int(port) if port else None)
+ return 0
+
+
+class YoutubeDL(youtube_dl.YoutubeDL):
+ def to_stdout(self, message, *args, **kwargs):
+  if self.params.get("logger"):
+   self.params["logger"].output(message)
+  else:
+   return super().to_stdout(message, *args, **kwargs)
+
+
+class Logger(object):
+ def __init__(self):
+  self.result = []
+ def default(self, data):
+  pass
+ warning = error = debug = default
+ def output(self, data):
+  self.result += [data]
+
+
+YTDL_ERRORS = []
+def _get_ytdl_errors():
+ for i in youtube_dl.utils.__dict__:
+  try:
+   obj = getattr(youtube_dl.utils, i, None)
+   if issubclass(obj, Exception):
+    YTDL_ERRORS.append(obj)
+  except TypeError:
+   pass
+_get_ytdl_errors()
+
+
+def is_ytdl_error(exc):
+ for i in YTDL_ERRORS:
+  if isinstance(exc, i):
+   return True
+ return False
+
+
+class YTDLError(Exception):
+ MATCHES = []
+ NON_MATCHES = []
+ 
+ @classmethod
+ def matches(cls, exc_str):
+  exc_str = str(exc_str).lower()
+  for i in cls.NON_MATCHES:
+   if i in exc_str:
+    return False
+  for i in cls.MATCHES:
+   if i in exc_str:
+    return True
+  return False
+
+
+# grep -r ExtractorError /path/to/ytdl-source
+# (the lists below may not be complete)
+
+
+class YTDLNotFoundError(YTDLError):
+ MATCHES = [
+  "does not exist",
+  "failed to get",
+  "no video formats found",
+  "no video found",
+  "no video assets found",
+  "no videos found",
+  "no working video urls found",
+  "not available",
+  "not extract",
+  "not find",
+  "not found",
+  "unable to extract",
+  "unable to find",
+  "unable to resolve",
+ ]
+ NON_MATCHES = [
+  "not find js",
+ ]
+
+
+class YTDLGoneError(YTDLError):
+ MATCHES = [
+  "deleted",
+  "expired",
+  "has been offline",
+  "no longer",
+  "removed",
+ ]
+
+
+class YTDLBadRequestError(YTDLError):
+ MATCHES = [
+  "no downloadable videos",
+  "doesn't contain",
+  "invalid url",
+  "not a video",
+  "not a valid url",
+  "please specify full",
+  "unsupported",
+ ]
+
+
+def ytdl_get_url(url, format):
+ logger=Logger()
+ ytdl_params = dict(
+  logger=logger,
+  forceurl=True,
+  quiet=True,
+  simulate=True,
+  format=format
+ )
+ try:
+  with YoutubeDL(ytdl_params) as ytdl:
+   ytdl.download([url])
+ except Exception as exc: 
+  if is_ytdl_error(exc):
+   for t in [YTDLNotFoundError, YTDLGoneError, YTDLBadRequestError]:
+    if t.matches(exc):
+     raise t() from exc
+   raise YTDLError() from exc
+  else:
+   raise
+ if len(logger.result):
+  result = logger.result[-1]
+  if len(result):
+   return result
+  else:
+   raise YTDLError()
+ raise YTDLError()
+
+
+class Handler(socketserver.BaseRequestHandler):
+ def handle(self):
+  result = "error://other"
+  exc = None
+  try:
+   input = self.request.makefile("rb", 0).read().decode("utf-8")
+   if "\n" in input:
+    format, url = input.split("\n", 1)
+    try:
+     result = ytdl_get_url(url, format)
+    except YTDLError as x:
+     if isinstance(x, YTDLNotFoundError):
+      result = "error://not-found"
+     elif isinstance(x, YTDLGoneError):
+      result = "error://gone"
+     elif isinstance(x, YTDLBadRequestError):
+      result = "error://bad-request"
+     else:
+      exc = x
+      result = "error://youtube-dl"
+   self.request.send(result.encode("utf-8"))
+  except Exception as x:
+   exc = x
+   self.request.send(b"error://python")
+  
+  if exc:
+   raise exc
+  
+  self.request.shutdown(socket.SHUT_RDWR)
+  self.request.close()
+
+
+class Server(socketserver.ThreadingMixIn, socketserver.TCPServer):
+ allow_reuse_address = True
+
+
+def daemon(host=None, port=None):
+ server = Server((host or DEFAULT_HOST, port or DEFAULT_PORT), Handler)
+ try:
+  server.serve_forever()
+ finally:
+  server.shutdown()
+
+
+if __name__ == "__main__":
+ try:
+  sys.exit(main(sys.argv))
+ except KeyboardInterrupt:
+  pass
