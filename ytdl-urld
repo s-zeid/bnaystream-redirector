@@ -8,10 +8,13 @@
 # Plumbing {{{1
 
 import argparse
+import datetime
 import os
+import re
 import socket
 import socketserver
 import sys
+import urllib
 
 import youtube_dl
 
@@ -196,6 +199,7 @@ class YTDLBadRequestError(YTDLError):
 
 def ytdl_get_url(url, format, use_custom_extractors=True):
  result = None
+ extracted = False
  
  logger=Logger()
  ytdl_params = dict(
@@ -207,10 +211,19 @@ def ytdl_get_url(url, format, use_custom_extractors=True):
  )
  
  try:
-  with YoutubeDL(ytdl_params) as ytdl:
-   ytdl.download([url])
-  if len(logger.result):
-   result = logger.result[-1]
+  if use_custom_extractors:
+   for Extractor in CUSTOM_EXTRACTORS:
+    extractor = Extractor()
+    if extractor.matches(url):
+     result = extractor.extract(url, format)
+     extracted = True
+  
+  if not extracted:
+   with YoutubeDL(ytdl_params) as ytdl:
+    ytdl.download([url])
+   if len(logger.result):
+    result = logger.result[-1]
+   extracted = True
  except Exception as exc: 
   if is_ytdl_error(exc):
    for t in [YTDLNotFoundError, YTDLGoneError, YTDLBadRequestError]:
@@ -255,6 +268,42 @@ class Handler(socketserver.BaseRequestHandler):
   
   self.request.shutdown(socket.SHUT_RDWR)
   self.request.close()
+
+
+# Custom extractors {{{1
+
+CUSTOM_EXTRACTORS = []
+
+
+class CustomExtractor:
+ def matches(self, url):
+  raise NotImplementedError
+ 
+ def extract(self, url, format):
+  raise NotImplementedError
+
+
+def firefox_version(today=None):
+ """Returns (approximately) the latest major version of Firefox."""
+ 
+ if today != None and not isinstance(today, datetime.date):
+  raise TypeError("today must be a datetime.date")
+ 
+ epoch_date = datetime.date(2014, 2, 4)
+ epoch_version = 27
+ today = today or datetime.date.today()
+ days = (today - epoch_date).days
+ weeks = days / 7
+ cycles = weeks / 6
+ return epoch_version + cycles
+
+
+def user_agent(today=None):
+ """Returns a user agent string for (approximately) the latest major version of Firefox."""
+ 
+ tpl = "Mozilla/5.0 (X11; Linux x86_64; rv:{v}) Gecko/20100101 Firefox/{v}"
+ version = str(firefox_version(today)) + ".0"
+ return tpl.format(v=version)
 
 
 if __name__ == "__main__": #{{{1
