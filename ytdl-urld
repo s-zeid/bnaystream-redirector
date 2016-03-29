@@ -283,6 +283,31 @@ class CustomExtractor:
   raise NotImplementedError
 
 
+class TYTNetworkExtractor(CustomExtractor):
+ def matches(self, url):
+  return bool(re.search(r"^(https?://)?(www\.)?tytnetwork\.com/live/?(\?.*)?(\#.*)?$",
+                        url))
+ 
+ def extract(self, url, format):
+  url = "https://www.tytnetwork.com/live/"
+  id_ = self._get_id(url)
+  if id_:
+   return ytdl_get_url("https://www.youtube.com/watch?v=" + id_, format)
+  raise YTDLNotFoundError()
+ 
+ def _get_id(self, url):
+  req = urllib.request.Request(url)
+  req.add_header("User-Agent", user_agent())
+  with urllib.request.urlopen(req) as f:
+   html = f.read().decode("utf-8")
+  matches = re.search("(https?://([^.]+\\.)?youtube\\.com/embed/[^?\"']+)", html).groups()
+  if len(matches):
+   result = re.sub(r"https?://([^.]+\.)?youtube\.com/embed/", "", matches[0])
+   return result
+
+CUSTOM_EXTRACTORS += [TYTNetworkExtractor]
+
+
 def firefox_version(today=None):
  """Returns (approximately) the latest major version of Firefox."""
  
