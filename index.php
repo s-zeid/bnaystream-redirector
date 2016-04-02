@@ -45,6 +45,13 @@ function stream_url($url, $format = null) {
    $stream_url = "";
  }
  
+ # for Twitch URLs without `/profile`, exclude VODs
+ if (preg_match("/^https?:\/\/([^.]+?\.)?twitch\.tv\/[^\/]+\/?$/", strtolower($url)) &&
+     preg_match("/^https?:\/\/vod/", strtolower($stream_url))) {
+  $stream_url = "error://not-found";
+  $success = false;
+ }
+ 
  return $stream_url;
 }
 
