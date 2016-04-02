@@ -36,7 +36,8 @@ function stream_url($url, $format = null) {
   // get URL via the youtube-dl command directly
   $r = null;
   ob_start();
-  passthru("youtube-dl -f ".escapeshellarg($format)." -g ".escapeshellarg($url), $r);
+  passthru("youtube-dl --quiet".
+           " -f ".escapeshellarg($format)." -g ".escapeshellarg($url), $r);
   $stream_url = rtrim(ob_get_contents(), "\r\n");
   ob_end_clean();
   $success = !$r;
