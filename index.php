@@ -13,7 +13,7 @@ function stream_url($url, $format = null) {
   $url = "http://$url";
  
  // format cleanup
- if (preg_match("/^https?:\/\/([^.]+?\.)?twitch\.tv/", strtolower($url)) &&
+ if (preg_match("/^https?:\/\/([^.]+?\.)?twitch\.tv\//", strtolower($url)) &&
      $format != "best" && $format != "worst")
   $format = ucfirst(strtolower($format));
  

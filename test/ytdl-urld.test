@@ -11,7 +11,7 @@ fi
 format=$1
 url=$2
 
-if (printf '%s' "$url" | grep -q -e '^\(https\?://\)\?\([^.]\+\?\.\)\?twitch\.tv') && \
+if (printf '%s' "$url" | grep -q -e '^\(https\?://\)\?\([^.]\+\?\.\)\?twitch\.tv/') && \
    [ x"$format" != x"best" ] && [ x"$format" != x"worst" ]; then
  format_len=$(printf '%s' "$format" | wc -c)
  format_upper=$(printf '%s' "$format" | tr 'a-z' 'A-Z')
