@@ -209,6 +209,8 @@ def ytdl_get_url(url, format, use_custom_extractors=True):
   forceurl=True,
   quiet=True,
   simulate=True,
+  playlistend=1,
+  max_downloads=1,
   format=format
  )
  
