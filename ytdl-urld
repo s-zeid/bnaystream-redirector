@@ -180,6 +180,7 @@ class YTDLNotFoundError(YTDLError):
 class YTDLGoneError(YTDLError):
  MATCHES = [
   "deleted",
+  "ended",
   "expired",
   "has been offline",
   "no longer",
