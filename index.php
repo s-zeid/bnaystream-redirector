@@ -88,7 +88,7 @@ function redirect($url, $format = null) {
 }
 
 
-function main($request_uri = null, $url_prefix = "") {
+function main($request_uri = null, $url_prefix = "", $https = true) {
  if ($request_uri === null)
   $request_uri = $_SERVER["REQUEST_URI"];
  
@@ -112,7 +112,10 @@ function main($request_uri = null, $url_prefix = "") {
   redirect($_GET["url"], (isset($_GET["format"])) ? $_GET["format"] : null);
  } else {
   header("Content-Type: text/html; charset=utf-8");
-  readfile("index.html");
+  $root = "http".(($https) ? "s" : "")."://{$_SERVER["HTTP_HOST"]}"
+          .((!empty($url_prefix)) ? "/".trim($url_prefix, "/") : "")
+          ."/".ltrim($request_uri, "/");
+  echo str_replace("___ROOT___", rtrim($root, "/"), file_get_contents("index.html"));
  }
 }
 
@@ -160,8 +163,10 @@ if (!empty($config["url_prefix"])) {
  }
 }
 
+$https = !empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != "off";
 
-main($request_uri, $url_prefix);
+
+main($request_uri, $url_prefix, $https);
 exit();
 
 ?>
