@@ -3,6 +3,15 @@
 // Copyright (c) 2016 Scott Zeid.
 // Released under the X11 License:  <https://tldrlegal.com/l/x11>
 
+$config = [
+ "url_prefix" => "",
+ "non_prefixed_root_redirect" => "",
+];
+
+if (is_file("index.conf"))
+ $config = array_merge($config, parse_ini_file("index.conf"));
+
+
 function stream_url($url, $format = null) {
  // handle the case where no format is given
  if (empty($format))
@@ -79,13 +88,16 @@ function redirect($url, $format = null) {
 }
 
 
-function main() {
- if ($_SERVER["REQUEST_URI"] == "/index.php") {
-  header("Location: /");
+function main($request_uri = null, $url_prefix = "") {
+ if ($request_uri === null)
+  $request_uri = $_SERVER["REQUEST_URI"];
+ 
+ if ($request_uri == "/index.php") {
+  header("Location: $url_prefix/");
   return;
  }
  
- $input = ltrim($_SERVER["REQUEST_URI"], "/");
+ $input = ltrim($request_uri, "/");
  if (strpos($input, "?") !== 0 && !empty(trim($input, "/"))) {
   // get URL and format
   list($format, $url) = explode('/', $input, 2);
@@ -112,7 +124,44 @@ if (php_sapi_name() == "cli-server") {
 }
 
 
-main();
+// prefix handling
+$request_uri = $_SERVER["REQUEST_URI"];
+$url_prefix = trim($config["url_prefix"], "/");
+$prefix_depth = (!empty($url_prefix)) ? count(explode("/", $url_prefix)) : 0;
+if (!empty($config["url_prefix"])) {
+ $url_prefix = "/$url_prefix";
+ $prefix_re = "@^".preg_quote($url_prefix)."([/?])@";
+ if ($request_uri == $url_prefix) {
+  // make sure the prefix has a trailing slash after it
+  header("Location: $request_uri/");
+  exit();
+ } elseif (preg_match($prefix_re, $request_uri)) {
+  // remove prefix from request URI
+  $request_uri = preg_replace($prefix_re, "\\1", $request_uri);
+ } else {
+  // reject requests without prefix
+  if ($config["non_prefixed_root_redirect"] &&
+      preg_replace("/\?.*$/", "", $request_uri) == "/") {
+   header("Location: {$config["non_prefixed_root_redirect"]}");
+  } else {
+   header("HTTP/1.0 404 Not Found");
+   echo "<h1>404 Not Found</h1>";
+  }
+  exit();
+ }
+ 
+ // handle static file requests
+ $request_no_query = preg_replace("/\?.*$/", "", $request_uri);
+ if (is_file(__DIR__.DIRECTORY_SEPARATOR.$request_no_query)) {
+  if ($request_no_query != "/".basename(__FILE__)) {
+   header("Location: $request_uri");
+   exit();
+  }
+ }
+}
+
+
+main($request_uri, $url_prefix);
 exit();
 
 ?>
