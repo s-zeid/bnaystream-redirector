@@ -117,6 +117,7 @@ function main($request_uri = null, $url_prefix = "", $_get = null, $https = true
   $root = "http".(($https) ? "s" : "")."://{$_SERVER["HTTP_HOST"]}"
           .((!empty($url_prefix)) ? "/".trim($url_prefix, "/") : "")
           ."/".ltrim($request_uri, "/");
+  $root = preg_replace("/\?.*$/", "", $root);
   echo str_replace("___ROOT___", rtrim($root, "/"), file_get_contents("index.html"));
  }
 }
