@@ -88,9 +88,11 @@ function redirect($url, $format = null) {
 }
 
 
-function main($request_uri = null, $url_prefix = "", $https = true) {
+function main($request_uri = null, $url_prefix = "", $_get = null, $https = true) {
  if ($request_uri === null)
   $request_uri = $_SERVER["REQUEST_URI"];
+ if ($_get === null)
+  $_get = $_GET;
  
  if ($request_uri == "/index.php") {
   header("Location: $url_prefix/");
@@ -108,8 +110,8 @@ function main($request_uri = null, $url_prefix = "", $https = true) {
    $format = null;
   }
   redirect($url, $format);
- } elseif (isset($_GET["url"])) {
-  redirect($_GET["url"], (isset($_GET["format"])) ? $_GET["format"] : null);
+ } elseif (isset($_get["url"])) {
+  redirect($_get["url"], (isset($_get["format"])) ? $_get["format"] : null);
  } else {
   header("Content-Type: text/html; charset=utf-8");
   $root = "http".(($https) ? "s" : "")."://{$_SERVER["HTTP_HOST"]}"
@@ -165,8 +167,16 @@ if (!empty($config["url_prefix"])) {
 
 $https = !empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] != "off";
 
+// handle un-parsed query strings (e.g. on lighttpd with a URL prefix and
+// server.error-handler-404)
+$_get = $_GET;
+if (empty($_SERVER["QUERY_STRING"]) && empty($_get) && strpos($request_uri, "?") !== 0) {
+ $_get = [];
+ parse_str(substr($request_uri, strpos($request_uri, "?") + 1), $_get);
+}
 
-main($request_uri, $url_prefix, $https);
+
+main($request_uri, $url_prefix, $_get, $https);
 exit();
 
 ?>
